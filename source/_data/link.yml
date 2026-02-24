@@ -1,0 +1,35 @@
+- class_name: 朋友们
+  class_desc: 朋友们的博客/网站
+  link_list:
+    - name: NULL
+      link: https://example.com/
+      avatar: https://via.placeholder.com/100
+      descr: 這是一個範例網站
+
+- class_name: 崇拜的人
+  class_desc: 新时代的开拓者
+  link_list:
+    - name: Linus Torvalds
+      link: https://github.com/torvalds
+      avatar: https://avatars.githubusercontent.com/u/1024025?v=4
+      descr: Linux内核创始人
+    - name: Richard Stallman
+      link: https://stallman.org/
+      avatar: https://stallman.org/Richard_Stallman_at_LibrePlanet_2019.jpg
+      descr: 自由软件运动的创始人
+    - name: Elon Musk
+      link: https://x.com/elonmusk
+      avatar: https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg
+      descr: 特斯拉和SpaceX的创始人
+    - name: Sam Altman
+      link: https://x.com/sama
+      avatar: https://upload.wikimedia.org/wikipedia/commons/a/a2/Sam_Altman_TechCrunch_SF_2019_Day_2_Oct_3_%28cropped%29.jpg
+      descr: OpenAI的首席执行官
+
+- class_name: 推荐工具
+  class_desc: 我的工具箱
+  link_list:
+    - name: Pixso
+      link: https://pixso.cn/
+      avatar: https://cms.pixso.cn/images/favicon.ico
+      descr: 产品设计协作一体化工具
