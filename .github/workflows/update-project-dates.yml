@@ -1,20 +1,184 @@
-name: Update Project Dates
+name: Update Project Dates Based on Status
 
 on:
-  workflow_dispatch:
+  issues:
+    types: [opened, edited, closed]
+  pull_request:
+    types: [opened, edited, closed]
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  update:
+  update-project-dates:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Update Dates
+      - name: Get Project Fields Information
+        id: project_info
         run: |
-          # Get current date and time
-          CURRENT_DATE=$(date -u '+%Y-%m-%d %H:%M:%S')
+          # 查询项目字段信息，替换为您的用户名和项目号
+          gh api graphql -f query='
+            query($user: String!, $number: Int!) {
+              user(login: $user) {
+                projectV2(number: $number) {
+                  id
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2Field {
+                        id
+                        name
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' \
+            -f user=SyunnT \
+            -F number=21 > /tmp/project_info.json
+          
+          # 提取所需的 ID
+          PROJECT_ID=$(jq -r '.data.user.projectV2.id' /tmp/project_info.json)
+          STATUS_FIELD_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Status") | .id' /tmp/project_info.json)
+          START_TIME_FIELD_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "开始时间") | .id' /tmp/project_info.json)
+          END_TIME_FIELD_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "结束时间") | .id' /tmp/project_info.json)
+          IN_PROGRESS_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "In Progress") | .id' /tmp/project_info.json)
+          DONE_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Done") | .id' /tmp/project_info.json)
+          
+          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_OUTPUT
+          echo "STATUS_FIELD_ID=$STATUS_FIELD_ID" >> $GITHUB_OUTPUT
+          echo "START_TIME_FIELD_ID=$START_TIME_FIELD_ID" >> $GITHUB_OUTPUT
+          echo "END_TIME_FIELD_ID=$END_TIME_FIELD_ID" >> $GITHUB_OUTPUT
+          echo "IN_PROGRESS_OPTION_ID=$IN_PROGRESS_OPTION_ID" >> $GITHUB_OUTPUT
+          echo "DONE_OPTION_ID=$DONE_OPTION_ID" >> $GITHUB_OUTPUT
 
-          # Here you would update your project dates based on the logic you need
-          echo "Updating project dates based on status field changes. Current Date: $CURRENT_DATE"
+      - name: Get Project Item ID
+        id: get_item
+        run: |
+          ISSUE_OR_PR_NODE_ID="${{ github.event.issue.node_id || github.event.pull_request.node_id }}"
+          
+          # 查询该 issue/PR 在项目中对应的 item ID
+          ITEM_RESPONSE=$(gh api graphql -f query='
+            query($project: ID!, $content: ID!) {
+              node(id: $project) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      content {
+                        ... on Issue {
+                          id
+                        }
+                        ... on PullRequest {
+                          id
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' \
+            -f project=${{ steps.project_info.outputs.PROJECT_ID }} \
+            -f content=$ISSUE_OR_PR_NODE_ID)
+          
+          ITEM_ID=$(echo $ITEM_RESPONSE | jq -r ".data.node.items.nodes[] | select(.content.id == \"$ISSUE_OR_PR_NODE_ID\") | .id")
+          
+          if [ -z "$ITEM_ID" ] || [ "$ITEM_ID" == "null" ]; then
+            echo "Item not found in project, skipping..."
+            echo "ITEM_FOUND=false" >> $GITHUB_OUTPUT
+          else
+            echo "ITEM_ID=$ITEM_ID" >> $GITHUB_OUTPUT
+            echo "ITEM_FOUND=true" >> $GITHUB_OUTPUT
+          fi
 
+      - name: Get Current Status
+        id: get_status
+        if: steps.get_item.outputs.ITEM_FOUND == 'true'
+        run: |
+          STATUS_RESPONSE=$(gh api graphql -f query='
+            query($project: ID!, $item: ID!, $field: ID!) {
+              node(id: $project) {
+                ... on ProjectV2 {
+                  items(first: 1, after: null) {
+                    nodes {
+                      fieldValueByName(name: "Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          name
+                          field {
+                            ... on ProjectV2SingleSelectField {
+                              options {
+                                id
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' \
+            -f project=${{ steps.project_info.outputs.PROJECT_ID }} \
+            -f item=${{ steps.get_item.outputs.ITEM_ID }} \
+            -f field=${{ steps.project_info.outputs.STATUS_FIELD_ID }})
+          
+          CURRENT_STATUS=$(echo $STATUS_RESPONSE | jq -r '.data.node.items.nodes[0].fieldValueByName.name')
+          echo "CURRENT_STATUS=$CURRENT_STATUS" >> $GITHUB_OUTPUT
+
+      - name: Set Start Time when In Progress
+        if: steps.get_item.outputs.ITEM_FOUND == 'true' && steps.get_status.outputs.CURRENT_STATUS == 'In Progress'
+        run: |
+          CURRENT_DATE=$(date +"%Y-%m-%d")
+          
+          gh api graphql -f query='
+            mutation($project: ID!, $item: ID!, $field: ID!, $value: Date!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $project
+                itemId: $item
+                fieldId: $field
+                value: { date: $value }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }' \
+            -f project=${{ steps.project_info.outputs.PROJECT_ID }} \
+            -f item=${{ steps.get_item.outputs.ITEM_ID }} \
+            -f field=${{ steps.project_info.outputs.START_TIME_FIELD_ID }} \
+            -f value=$CURRENT_DATE
+          
+          echo "✅ Start time set to $CURRENT_DATE"
+
+      - name: Set End Time when Done
+        if: steps.get_item.outputs.ITEM_FOUND == 'true' && steps.get_status.outputs.CURRENT_STATUS == 'Done'
+        run: |
+          CURRENT_DATE=$(date +"%Y-%m-%d")
+          
+          gh api graphql -f query='
+            mutation($project: ID!, $item: ID!, $field: ID!, $value: Date!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $project
+                itemId: $item
+                fieldId: $field
+                value: { date: $value }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }' \
+            -f project=${{ steps.project_info.outputs.PROJECT_ID }} \
+            -f item=${{ steps.get_item.outputs.ITEM_ID }} \
+            -f field=${{ steps.project_info.outputs.END_TIME_FIELD_ID }} \
+            -f value=$CURRENT_DATE
+          
+          echo "✅ End time set to $CURRENT_DATE"
