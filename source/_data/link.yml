@@ -1,13 +1,13 @@
-- class_name: 朋友们
-  class_desc: 朋友们的博客/网站
+- class_name: 好友
+  # class_desc: 朋友们的博客/网站
   link_list:
-    - name: NULL
-      link: https://example.com/
-      avatar: https://via.placeholder.com/100
-      descr: 這是一個範例網站
+    - name: llewellyn
+      link: https://old.llewellyn.top/
+      avatar: https://old.llewellyn.top/images/favicon.ico
+      descr: llewellyn 的网站
 
-- class_name: 崇拜的人
-  class_desc: 新时代的开拓者
+- class_name: 大佬
+  # class_desc: 新时代的开拓者
   link_list:
     - name: Linus Torvalds
       link: https://github.com/torvalds
@@ -26,8 +26,8 @@
       avatar: https://upload.wikimedia.org/wikipedia/commons/a/a2/Sam_Altman_TechCrunch_SF_2019_Day_2_Oct_3_%28cropped%29.jpg
       descr: OpenAI的首席执行官
 
-- class_name: 推荐工具
-  class_desc: 我的工具箱
+- class_name: 工具箱
+  # class_desc: 我的工具箱
   link_list:
     - name: Pixso
       link: https://pixso.cn/

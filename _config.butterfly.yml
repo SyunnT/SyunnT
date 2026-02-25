@@ -51,7 +51,7 @@ code_blocks:
 #   icon: link || the description || color
 social:
   # fab fa-github: https://github.com/SyunnT || Github || '#24292e'
-  fas fa-envelope: mailto:syunn.pub@icloud.com || Email || '#4a7dbe'
+  fas fa-envelope: mailto:master@syunn.cn || Email || '#4a7dbe'
 
 # --------------------------------------
 # Image Settings
