@@ -1,10 +1,10 @@
 name: Update Project Dates
 
 on:
-  workflow_run:
-    workflows: ["Monitor Status Changes"]
-    types:
-      - completed
+  issues:
+    types: [opened, edited, reopened, closed]
+  pull_request:
+    types: [opened, reopened, closed]
 
 jobs:
   update_dates:
@@ -13,14 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Get Project Field IDs
-        id: get_field_ids
+      - name: Update Project Dates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          QUERY='{\n            repository(owner: "SyunnT", name: "SyunnT") {\n              project(number: 1) {  # Set your project number\n                fields(first: 10) {\n                  nodes {\n                    id\n                    name\n                  }\n                }\n              }\n            }\n          }'
-          echo "::set-output name=field_ids::"$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -X POST -d "{\"query\": \"$QUERY\"}" https://api.github.com/graphql | jq -r '.data.repository.project.fields.nodes | map(.id) | join(",")')""
-
-      - name: Update Dates based on Status
-        run: |
-          # Writing additional logic to update project dates goes here
-          # This would involve updating dates based on field IDs and new date values
-          echo "Updating project dates using Field IDs: ${{ steps.get_field_ids.outputs.field_ids }}"
+          # Add your script to update project date fields here.
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "Updating project dates with current date: $DATE"
+          # Assuming you have a script that handles the API calls
+          # ./update_dates_script.sh $DATE
