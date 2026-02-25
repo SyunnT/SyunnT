@@ -1,94 +1,20 @@
 name: Update Project Dates
 
 on:
-  issues:
-    types: [opened, edited, labeled]
-  pull_request:
-    types: [opened, edited, labeled]
   workflow_dispatch:
 
-env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
-  update-project:
+  update:
     runs-on: ubuntu-latest
     steps:
-      - name: Update project when status changes
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Update Dates
         run: |
-          # 获取当前 issue/PR 的 project 信息
-          ISSUE_OR_PR_ID="${{ github.event.issue.node_id || github.event.pull_request.node_id }}"
-          CURRENT_DATE=$(date +"%Y-%m-%d")
-          
-          # 替换下面的值为您从上面获取的 ID
-          PROJECT_ID="PVT_YOUR_PROJECT_ID"  # 替换为您的 Project ID
-          STATUS_FIELD_ID="PVTF_YOUR_STATUS_FIELD_ID"  # 替换为 Status 字段 ID
-          START_TIME_FIELD_ID="PVTF_YOUR_START_TIME_FIELD_ID"  # 替换为开始时间字段 ID
-          END_TIME_FIELD_ID="PVTF_YOUR_END_TIME_FIELD_ID"  # 替换为结束时间字段 ID
-          
-          # 查询当前 item 在 project 中的状态
-          ITEM_ID=$(gh api graphql -f query='
-            query($project: ID!, $issue: ID!) {
-              node(id: $project) {
-                ... on ProjectV2 {
-                  items(first: 100) {
-                    nodes {
-                      id
-                      content {
-                        ... on Issue {
-                          id
-                        }
-                        ... on PullRequest {
-                          id
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }' -f project=$PROJECT_ID -f issue=$ISSUE_OR_PR_ID --jq '.data.node.items.nodes[] | select(.content.id == $issue_id) | .id' -f issue_id=$ISSUE_OR_PR_ID 2>/dev/null)
-          
-          if [ -z "$ITEM_ID" ]; then
-            echo "未找到 project item，跳过更新"
-            exit 0
-          fi
-          
-          # 检查是否标记了 "in-progress" 标签
-          if [[ "${{ github.event.pull_request.labels || github.event.issue.labels }}" == *"in-progress"* ]]; then
-            echo "检测到 'in-progress' 标签，设置开始时间..."
-            gh api graphql -f query='
-              mutation($project: ID!, $item: ID!, $field: ID!, $value: Date!) {
-                updateProjectV2ItemFieldValue(input: {
-                  projectId: $project
-                  itemId: $item
-                  fieldId: $field
-                  value: { date: $value }
-                }) {
-                  projectV2Item { id }
-                }
-              }' \
-              -f project=$PROJECT_ID \
-              -f item=$ITEM_ID \
-              -f field=$START_TIME_FIELD_ID \
-              -f value=$CURRENT_DATE
-          fi
-          
-          # 检查是否标记了 "done" 标签或 issue 已关闭
-          if [[ "${{ github.event.pull_request.labels || github.event.issue.labels }}" == *"done"* ]] || [ "${{ github.event.action }}" == "closed" ]; then
-            echo "检测到完成标记，设置结束时间..."
-            gh api graphql -f query='
-              mutation($project: ID!, $item: ID!, $field: ID!, $value: Date!) {
-                updateProjectV2ItemFieldValue(input: {
-                  projectId: $project
-                  itemId: $item
-                  fieldId: $field
-                  value: { date: $value }
-                }) {
-                  projectV2Item { id }
-                }
-              }' \
-              -f project=$PROJECT_ID \
-              -f item=$ITEM_ID \
-              -f field=$END_TIME_FIELD_ID \
-              -f value=$CURRENT_DATE
-          fi
+          # Get current date and time
+          CURRENT_DATE=$(date -u '+%Y-%m-%d %H:%M:%S')
+
+          # Here you would update your project dates based on the logic you need
+          echo "Updating project dates based on status field changes. Current Date: $CURRENT_DATE"
+
