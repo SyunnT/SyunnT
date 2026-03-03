@@ -1,5 +1,5 @@
 ---
-title: 编码与乱码问题分析
+title: 【C/C++】编码与乱码问题分析
 tags:
   - C/C++
   - 乱码
@@ -8,11 +8,11 @@ categories:
   - 技术
   - C/C++
   - 问题分析
-abbrlink: e00029cc
+description: 介绍 C/C++ 编程中常见的乱码问题，分析其原因并给出独特可用的解决方案
+abbrlink: d41444a3
 date: 2026-01-03 13:45:50
 updated: 2026-02-28 17:45:50
-description: "介绍 C/C++ 编程中常见的乱码问题，分析其原因并给出独特可用的解决方案"
-keywords: 
+keywords:
 ---
 
 ## 背景介绍
