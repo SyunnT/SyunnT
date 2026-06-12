@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.25)
+project(Algorithms)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(MSVC)
+    add_compile_options(/source-charset:utf-8)
+else()
+    add_compile_options(-fexec-charset=gb2312)
+endif()
+
+set(Base OFF)
+set(LeetCode ON)
+set(C ON)
+set(CPP OFF)
+
+if(Base)
+endif()
+
+if(LeetCode)
+if(C)
+add_executable(0001TwoSumC LeetCode/0001TwoSum/TwoSum.c)
+endif()
+if(CPP)
+endif()
+endif()
