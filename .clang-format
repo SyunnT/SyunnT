@@ -1,17 +1,25 @@
 ---
+# 指定语言：Cpp 涵盖了 C, C++ 和 Objective-C
 Language: Cpp
+# 基础样式
 BasedOnStyle: LLVM
+
+# --- 缩进与宽度 ---
+ColumnLimit: 120
+IndentWidth: 4
+TabWidth: 4
+# 是否使用 Tab (Never: 仅使用空格缩进，配合 IndentWidth=4 最标准)
+UseTab: Never
+# C++ 访问修饰符 (public/private) 的偏移，-4 表示与类定义对齐（顶格）
 AccessModifierOffset: -4
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-AlignOperands: true
-AlignTrailingComments: true
-AllowShortBlocksOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: true
-AllowShortLoopsOnASingleLine: true
-AlwaysBreakAfterDefinitionReturnType: false
-AlwaysBreakTemplateDeclarations: Yes
+# 命名空间内的代码是否缩进 (All: 所有命名空间内容都缩进)
+NamespaceIndentation: All
+# 预处理指令的缩进样式 (AfterHash: 嵌套宏会在 # 后缩进，这在 C 语言中非常利于阅读)
+IndentPPDirectives: AfterHash
+
+# --- 大括号换行规则 ---
+# 完全自定义大括号换行
+BreakBeforeBraces: Custom
 BraceWrapping: 
   AfterCaseLabel: false
   AfterClass: true
@@ -29,31 +37,87 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-BreakBeforeBraces: Custom
+
+# --- 对齐规则 ---
+# 操作符对齐
+AlignOperands: true
+# 尾随注释对齐 (如 int a; // 注释1 \n int bbb; // 注释2)
+AlignTrailingComments: true
+# 连续赋值是否对齐 (如 a = 1; \n bbb = 2;) 建议保持 false 避免无谓的代码 diff
+AlignConsecutiveAssignments: false
+# 连续声明是否对齐
+AlignConsecutiveDeclarations: false
+# 连续的宏定义对齐 (C 语言中极度推荐，让 #define 排列整齐)
+AlignConsecutiveMacros: true
+# 宏定义中的反斜杠换行对齐到最右侧 (C 语言多行宏极其有用)
+AlignEscapedNewlines: Right
+
+# --- 指针与引用 ---
+# 指针靠左对齐 (如 int* a;)
+PointerAlignment: Left
+# 引用靠左对齐 (如 int& a;) - 继承 PointerAlignment 但明确写出更好
+ReferenceAlignment: Pointer
+# 必须关闭此项，否则 clang-format 会根据文件中现有代码猜测指针位置，导致设定失效
+DerivePointerAlignment: false
+
+# --- 换行与空行规则 ---
+# 文件末尾插入一个空行 (POSIX 标准)
+InsertNewlineAtEOF: true
+# 允许短块在单行 (如 { return 0; })
+AllowShortBlocksOnASingleLine: false
+# 允许短函数在单行
+AllowShortFunctionsOnASingleLine: None
+# 允许短 if 在单行 (如 if(a) return;)
+AllowShortIfStatementsOnASingleLine: true
+# 允许短 loop 在单行
+AllowShortLoopsOnASingleLine: true
+# 总是要在返回类型后换行
+AlwaysBreakAfterDefinitionReturnType: false
+# 模板声明强制换行 (C++ 专属)
+AlwaysBreakTemplateDeclarations: Yes
+# 构造函数初始化列表在逗号前换行 (C++ 专属)
 BreakConstructorInitializers: BeforeComma
-BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 120
+# 所有构造初始化都在同一行或者每行一个
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
+
+# --- 空格规则 ---
+# 括号内部不需要空格 (如 ( int a ) -> (int a))
+SpacesInParentheses: false
+# 尖括号内部不需要空格 (如 < int > -> <int>)
+SpacesInAngles: false
+# 条件语句中不需要空格
+SpacesInConditionalStatement: false
+# C风格类型转换内不需要空格 (如 ( int )a -> (int)a)
+SpacesInCStyleCastParentheses: false
+# 空的圆括号里不要空格 ( ) -> ()
+SpaceInEmptyParentheses: false
+# 控制语句(if/for/while)后加空格 (如 if(a) -> if (a))
+SpaceBeforeParens: ControlStatements
+# 赋值运算符前加空格 (如 a=1 -> a = 1)
+SpaceBeforeAssignmentOperators: true
+
+# --- 头文件排序规则 ---
+# 开启头文件字母排序
+SortIncludes: CaseSensitive
+# C++ 命名空间 using 声明排序
+SortUsingDeclarations: true
+# 头文件分类规则 (越小越靠前)
 IncludeCategories: 
-  - Regex: '^<.*'
+  - Regex: '^<.*'        # 1. 系统/标准库头文件 (<stdio.h>, <iostream>)
     Priority: 1
-  - Regex: '^".*'
+  - Regex: '^".*'        # 2. 项目内双引号头文件 ("my_header.h")
     Priority: 2
-  - Regex: '.*'
+  - Regex: '.*'          # 3. 其他头文件
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
+
+# --- 其他 ---
+# case 标签是否缩进
 IndentCaseLabels: true
+# goto 标签是否缩进 (false 会让标签顶格写，利于 C 语言阅读)
 IndentGotoLabels: false
-IndentWidth: 4
-InsertNewlineAtEOF: true
+# 自动修复 C++ 命名空间末尾的注释 (如 } // namespace abc)
+FixNamespaceComments: true
 MacroBlockBegin: ''
 MacroBlockEnd: ''
-NamespaceIndentation: All
-PointerAlignment: Left
-SpaceInEmptyParentheses: false
-SpacesInAngles: false
-SpacesInConditionalStatement: false
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-TabWidth: 4
 ...
