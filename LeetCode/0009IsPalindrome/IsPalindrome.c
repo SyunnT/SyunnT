@@ -24,11 +24,25 @@ bool isPalindrome(int x)
     return true;
 }
 
-// 非字符串实现
+// 非字符串实现：数字反转
 #elif METHOD == 2
 bool isPalindrome(int x)
 {
     if (x < 0 || (x % 10 == 0 && x != 0)) return false;
+    int backReverse = 0;
+    // 奇数位不适用
+    // while (x > backReverse) {
+    //     backReverse = backReverse * 10 + x % 10;
+    //     x /= 10;
+    // }
+    while ((x / 10) > backReverse) {
+        backReverse = backReverse * 10 + x % 10;
+        x /= 10;
+    }
+    if (x != backReverse) {
+        x /= 10;
+    }
+    return x == backReverse;
 }
 
 #endif

@@ -59,11 +59,11 @@ int getValue(const RecordType* record)
 typedef struct
 {
     RecordType** records;
-    uint32_t size;
-    uint32_t length;
+    unsigned int size;
+    unsigned int length;
 } HashTable;
 /// @return 0 失败；1 成功
-int initHashTable(HashTable* table, uint32_t size)
+int initHashTable(HashTable* table, unsigned int size)
 {
     table->length = 0;
     table->records = NULL;
@@ -96,9 +96,9 @@ void destroyTable(HashTable* table)
     free(records);
     table->records = NULL;
 }
-uint32_t hashAlgo(const HashTable* table, int key)
+unsigned int hashAlgo(const HashTable* table, int key)
 {
-    uint32_t x = (uint32_t)key;
+    unsigned int x = (unsigned int)key;
 
     x ^= x >> 16;
     x *= 0x85ebca6b;
@@ -111,7 +111,7 @@ uint32_t hashAlgo(const HashTable* table, int key)
 /// @return 0 成功；-1 内存分配失败
 int tableInsert(HashTable* table, int key, int value)
 {
-    uint32_t index = hashAlgo(table, key);
+    unsigned int index = hashAlgo(table, key);
     RecordType* record = (RecordType*)malloc(sizeof(RecordType));
     if(!record) return -1;
     record->key = key;
@@ -125,7 +125,7 @@ int tableInsert(HashTable* table, int key, int value)
 /// @param value 做值返回
 int tableFind(const HashTable* table, int key, int* value)
 {
-    uint32_t index = hashAlgo(table, key);
+    unsigned int index = hashAlgo(table, key);
     RecordType* record = table->records[index];
     while (record) {
         if (record->key == key) {
